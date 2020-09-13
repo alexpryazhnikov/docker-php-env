@@ -6,8 +6,8 @@
 If you're using this solution with WSL2 you must place repository files inside WSL virtual machine, otherwise Nginx is very slow!
 
 # What's inside?
-- PHP 7.3
+- PHP 7.4
 - Composer
 - NodeJS 12 and NPM
 - Nginx
-- MySQL 5.7
+- MariaDB 10
