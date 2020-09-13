@@ -1,6 +1,6 @@
 version: '3'
 services:
-  #PHP Service
+  # PHP Service
   app:
     build:
       context: .
@@ -8,47 +8,38 @@ services:
     container_name: app
     restart: unless-stopped
     tty: true
-    environment:
-      SERVICE_NAME: app
-      SERVICE_TAGS: dev
-    working_dir: /var/www
+    working_dir: /var/www/html
     volumes: 
-        - ./src:/var/www
-        - ./php/local.ini:/usr/local/etc/php/conf.d/local.ini
+      - ./src:/var/www/html
     networks:
       - app-network
 
-  #Nginx Service
+  # Nginx Service
   webserver:
     image: nginx:alpine
     container_name: webserver
     restart: unless-stopped
-    tty: true
     ports:
-      - "80:80"
-      - "443:443"
+      - "8080:80"
     volumes: 
-        - ./src:/var/www
-        - ./nginx/conf.d/:/etc/nginx/conf.d/
+      - ./src:/var/www/html
+      - ./config/nginx/conf.d/:/etc/nginx/conf.d/
     networks:
       - app-network
 
-  #MySQL Service
+  # MySQL Service
   db:
-    image: mysql:5.7.22
+    image: mariadb:latest
     container_name: db
     restart: unless-stopped
-    tty: true
     ports:
       - "3306:3306"
     environment:
       MYSQL_DATABASE: laravel
-      MYSQL_ROOT_PASSWORD: password
-      SERVICE_TAGS: dev
-      SERVICE_NAME: mysql
+      MYSQL_ROOT_PASSWORD: root
     volumes: 
-        - dbdata:/var/lib/mysql/
-        - ./mysql/my.cnf:/etc/mysql/my.cnf
+      - dbdata:/var/lib/mysql/
+      - ./config/mysql/my.cnf:/etc/mysql/my.cnf
     networks:
       - app-network
 
@@ -58,5 +49,5 @@ networks:
     driver: bridge
 
 volumes: 
-    dbdata:
-        driver: local
+  dbdata:
+    driver: local

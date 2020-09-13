@@ -1,51 +1,60 @@
-FROM php:7.3-fpm
+FROM php:7.4-fpm
 
-# Copy composer.lock and composer.json
-# COPY composer.lock composer.json /var/www/
+WORKDIR /var/www/html
 
-# Set working directory
-WORKDIR /var/www
-
+# Node
 RUN curl -sL https://deb.nodesource.com/setup_12.x | bash -
 
-# Install dependencies
-RUN apt-get update && apt-get install -y \
-    build-essential \
-    libpng-dev \
-    libjpeg62-turbo-dev \
-    libfreetype6-dev \
-    locales \
-    zip \
-    jpegoptim optipng pngquant gifsicle \
-    vim \
-    unzip \
-    libzip-dev \
-    git \
-    curl \
-    nodejs
+RUN apt-get update && apt-get upgrade -y && apt-get install -y \
+      procps \
+      nano \
+      git \
+      nodejs \
+      unzip \
+      libicu-dev \
+      zlib1g-dev \
+      libxml2 \
+      libxml2-dev \
+      libreadline-dev \
+      supervisor \
+      cron \
+      libzip-dev \
+    && docker-php-ext-configure pdo_mysql --with-pdo-mysql=mysqlnd \
+    && docker-php-ext-configure intl \
+    && docker-php-ext-install \
+      pdo_mysql \
+      sockets \
+      intl \
+      opcache \
+      zip \
+    && rm -rf /tmp/* \
+    && rm -rf /var/list/apt/* \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean
 
-# Clear cache
-RUN apt-get clean && rm -rf /var/lib/apt/lists/*
+# Config PHP
+COPY ./config/php/www.conf /usr/local/etc/php-fpm.d/www.conf
+COPY ./config/php/php.ini /usr/local/etc/php/php.ini
 
-# Install extensions
-RUN docker-php-ext-install pdo_mysql mbstring zip exif pcntl
-RUN docker-php-ext-configure gd --with-gd --with-freetype-dir=/usr/include/ --with-jpeg-dir=/usr/include/ --with-png-dir=/usr/include/
-RUN docker-php-ext-install gd
-
-# Install composer
+# Composer
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
-# Add user for laravel application
+# XDebug
+RUN pecl install xdebug
+COPY ./config/xdebug.ini /usr/local/etc/php/conf.d/
+
+#Supervisor
+RUN mkdir -p /var/log/supervisor
+COPY --chown=root:root ./config/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+COPY --chown=root:root ./config/cron /var/spool/cron/crontabs/root
+RUN chmod 0600 /var/spool/cron/crontabs/root
+
+# User and permissions
 RUN groupadd -g 1000 www
 RUN useradd -u 1000 -ms /bin/bash -g www www
 
-# Copy existing application directory contents
-# COPY . /var/www
+COPY --chown=www:www . /var/www/html
 
-# Copy existing application directory permissions
-COPY --chown=www:www . /var/www
-
-# Change current user to www
 USER www
 
 # Expose port 9000 and start php-fpm server
