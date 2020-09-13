@@ -41,7 +41,7 @@ RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local
 
 # XDebug
 RUN pecl install xdebug
-COPY ./config/xdebug.ini /usr/local/etc/php/conf.d/
+COPY ./config/xdebug.ini /usr/local/etc/php/conf.d/xdebug.ini
 
 #Supervisor
 RUN mkdir -p /var/log/supervisor
