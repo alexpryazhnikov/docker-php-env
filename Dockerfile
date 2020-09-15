@@ -1,7 +1,5 @@
 FROM php:7.4-fpm
 
-WORKDIR /var/www/html
-
 # Node
 RUN curl -sL https://deb.nodesource.com/setup_12.x | bash -
 
@@ -37,6 +35,9 @@ COPY ./config/php/www.conf /usr/local/etc/php-fpm.d/www.conf
 COPY ./config/php/php.ini /usr/local/etc/php/php.ini
 
 # Composer
+ENV COMPOSER_HOME /composer
+ENV PATH ./vendor/bin:/composer/vendor/bin:$PATH
+ENV COMPOSER_ALLOW_SUPERUSER 1
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
 # XDebug
@@ -49,14 +50,8 @@ COPY --chown=root:root ./config/supervisord.conf /etc/supervisor/conf.d/supervis
 COPY --chown=root:root ./config/cron /var/spool/cron/crontabs/root
 RUN chmod 0600 /var/spool/cron/crontabs/root
 
-# User and permissions
-RUN groupadd -g 1000 www
-RUN useradd -u 1000 -ms /bin/bash -g www www
-
-COPY --chown=www:www . /var/www/html
-
-USER www
+WORKDIR /var/www/html
 
 # Expose port 9000 and start php-fpm server
 EXPOSE 9000
-CMD ["php-fpm"]
+CMD ["php-fpm", "-R"]
