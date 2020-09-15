@@ -50,8 +50,16 @@ COPY --chown=root:root ./config/supervisord.conf /etc/supervisor/conf.d/supervis
 COPY --chown=root:root ./config/cron /var/spool/cron/crontabs/root
 RUN chmod 0600 /var/spool/cron/crontabs/root
 
+# Setup user, group and permissions
+RUN groupadd -g 1000 www
+RUN useradd -u 1000 -ms /bin/bash -g www www
+RUN mkdir -p /var/www/html
+RUN chown www:www /var/www/html
+
+USER www
+
 WORKDIR /var/www/html
 
 # Expose port 9000 and start php-fpm server
 EXPOSE 9000
-CMD ["php-fpm", "-R"]
+CMD ["php-fpm"]
