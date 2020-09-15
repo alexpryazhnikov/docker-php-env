@@ -54,7 +54,7 @@ RUN chmod 0600 /var/spool/cron/crontabs/root
 RUN groupadd -g 1000 www
 RUN useradd -u 1000 -ms /bin/bash -g www www
 RUN mkdir -p /var/www/html
-RUN chown www:www /var/www/html
+RUN chown www:www /var/www/html /composer
 
 USER www
 
